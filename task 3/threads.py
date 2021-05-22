@@ -1,28 +1,32 @@
-from threading import Thread
 import threading
+from concurrent.futures import ThreadPoolExecutor
+# for some reason I can't figure out how to pass my argument
+# in a thread by reference, neither dict or list work
 
-a = 0
-lock = threading.Lock()
+
+class Argument:
+    lock = threading.Lock()
+
+    def __init__(self, value=0, count=1000000):
+        self.value = value
+        self.count = count
+
 
 def function(arg):
-    global a
-    with lock:
-        for _ in range(arg):
-            a += 1
+    for _ in range(arg.count):
+        with arg.lock:
+            arg.value += 1
+    return arg.value
 
 
 def main():
-    threads = []
-    
-    for _ in range(5):
-        thread = Thread(target=function, args=(1000000,))
-        thread.start()
-        threads.append(thread)
+    arg = Argument()
 
-    for thread in threads:
-        thread.join()
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        results = [executor.submit(function, arg) for _ in range(5)]
 
-    print(a)
+    print('values at the end of every thread:', [res.result() for res in results])
+    print('result:', arg.value)
 
 
 main()
