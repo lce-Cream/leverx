@@ -4,31 +4,9 @@ import sys
 from dicttoxml import dicttoxml
 from collections import defaultdict
 
-FORMAT_TYPES = ('json', 'xml')
 
-
-def parse():
-    """
-    Returns dictionary like object with parsed arguments from terminal
-    """
-    parser = argparse.ArgumentParser(description='merge two json files into one with students grouped by rooms')
-
-    parser.add_argument('-s', '--students', help='json file containing students',
-                        metavar='path', default='students.json')
-
-    parser.add_argument('-r', '--rooms', help='json file containing rooms',
-                        metavar='path', default='rooms.json')
-
-    parser.add_argument('-f', '--format', help='output file extension',
-                        metavar='type', default='json', choices=FORMAT_TYPES)
-
-    return vars(parser.parse_args())
-
-
-class open_file:
-    """
-    Context manager which handles exceptions
-    """
+class OpenFile:
+    ''' Context manager which handles exceptions '''
     def __init__(self, path, mode='r'):
         try:
             self.file = open(path, mode)
@@ -46,50 +24,91 @@ class open_file:
         self.file.close()
 
 
-def merge(students, rooms):
-    """
-    Returns dictionary of the merged files
-    """
-    with open_file(students) as students_file:
-        students_json = json.load(students_file)
+class File:
+    _FORMAT_TYPES = ('json', 'xml')
 
+    def __init__(self, destination: str):
+        self.destination = destination.lower()
+        self.extension = destination.split('.')[-1]
+
+        if self.extension not in self._FORMAT_TYPES:
+            raise NotImplementedError(f'{self.extension} handling is not yet implemented')
+
+
+class JsonFile(File):
+    def __init__(self, destination: str):
+        super().__init__(destination)
+        if self.extension != 'json':
+            raise TypeError(f'{self.destination} is not a json file')
+
+    def read(self):
+        with OpenFile(self.destination) as file:
+            return json.load(file)
+
+    def write(self, data):
+        with OpenFile(self.destination, 'w') as file:
+            json.dump(data, file, indent=3)
+
+    @staticmethod
+    def merge(first, second):
+        '''Merges two json files'''
+        students_json = first.read()
+        rooms_json = second.read()
         students_by_rooms = defaultdict(list)
-        # take every student, then make a dictionary with their room id as a key and append to value every student
-        # from this room
+        output = {}
+
         for student in students_json:
             student_room = student['room']
             student_name = student['name']
             students_by_rooms[student_room].append(student_name)
 
-    with open_file(rooms) as rooms_file:
-        rooms_json = json.load(rooms_file)
-        output = {}
-        # make a dictionary where room id is a key and value is another dictionary containing room name and a list of
-        # students in this room and yeah, it will only work properly if rooms_json is sorted so room_id in 'for'
-        # matches actual room id
         for room_id in students_by_rooms:
             room = rooms_json[room_id]
             output[str(room['id'])] = {'room': room['name'], 'students': students_by_rooms[room_id]}
-    return output
+        return output
 
 
-def write_output(output, format):
-    """
-    Writes output with specified file format
-    """
-    with open_file(f'output.{format}', 'w') as output_file:
-        if format == 'json':
-            json.dump(output, output_file, indent=3)
-        elif format == 'xml':
-            xml = dicttoxml(output)
-            output_file.write(xml.decode())
-        else:
-            print(f'unsupported format: {format}')
-            sys.exit(1)
+class XmlFile(File):
+    def __init__(self, destination: str):
+        super().__init__(destination)
+        if self.extension != 'xml':
+            raise TypeError(f'{self.destination} is not a xml file')
+
+    def read(self):
+        raise NotImplemented('this function is not implemented yet')
+
+    def write(self, data):
+        with OpenFile(self.destination, 'w') as file:
+            file.write(dicttoxml(data).decode())
+
+
+class Parser:
+    def parse():
+        """
+        Returns dictionary like object with parsed arguments from terminal
+        """
+        parser = argparse.ArgumentParser(description='merge two json files into one with students grouped by rooms')
+
+        parser.add_argument('-s', '--students', help='json file containing students',
+                            metavar='path', default='students.json')
+
+        parser.add_argument('-r', '--rooms', help='json file containing rooms',
+                            metavar='path', default='rooms.json')
+
+        parser.add_argument('-f', '--format', help='output file extension',
+                            metavar='type', default='json', choices=File._FORMAT_TYPES)
+
+        return parser.parse_args()
 
 
 if __name__ == '__main__':
-    args = parse()
-    students_json, rooms_json, format = args['students'], args['rooms'], args['format']
-    output = merge(students_json, rooms_json)
-    write_output(output, format)
+    args = Parser.parse()
+    students, rooms, format = args.students, args.rooms, args.format
+
+    students_file = JsonFile(students)
+    rooms_file = JsonFile(rooms)
+    merged = JsonFile.merge(students_file, rooms_file)
+
+    extension_class_map = {ex: cls for ex, cls in zip(File._FORMAT_TYPES, File.__subclasses__())}
+    output = extension_class_map[format](f'output.{format}')
+    output.write(merged)
