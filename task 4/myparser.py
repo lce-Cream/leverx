@@ -34,9 +34,15 @@ class File:
         if self.extension not in self._FORMAT_TYPES:
             raise NotImplementedError(f'{self.extension} handling is not yet implemented')
 
+    @staticmethod
+    def get_class_by_format(format):
+        type_to_class = {ex: cls for ex, cls in zip(File._FORMAT_TYPES, File.__subclasses__())}
+        return type_to_class[format]
+
 
 class JsonFile(File):
     extension = '.json'
+
     def __init__(self, destination: str):
         super().__init__(destination)
         if self.extension != 'json':
@@ -71,6 +77,7 @@ class JsonFile(File):
 
 class XmlFile(File):
     extension = '.xml'
+    
     def __init__(self, destination: str):
         super().__init__(destination)
         if self.extension != 'xml':
@@ -111,6 +118,5 @@ if __name__ == '__main__':
     rooms_file = JsonFile(rooms)
     merged = JsonFile.merge(students_file, rooms_file)
 
-    extension_class_map = {ex: cls for ex, cls in zip(File._FORMAT_TYPES, File.__subclasses__())}
-    output = extension_class_map[format](f'output.{format}')
+    output = File.get_class_by_format(format)(f'output.{format}')
     output.write(merged)
