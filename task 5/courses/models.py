@@ -1,13 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-class User(models.Model):
-    name = models.CharField(max_length=100)
-    group = models.CharField(max_length=10, choices=[('student', 'student'), ('teacher', 'teacher')])
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=100)
-
-    def __str__(self):
-        return str((self.name, self.group))
+class User(AbstractUser):
+    status = models.CharField(max_length=10, choices=[('student', 'student'), ('teacher', 'teacher')])
 
 
 class Course(models.Model):
