@@ -7,11 +7,10 @@ class User(AbstractUser):
 
 class Course(models.Model):
     title = models.CharField(max_length=100)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
-    participants = models.ManyToManyField(User, related_name='participants')
+    participants = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
-        return str((self.title, self.owner))
+        return str(self.title)
 
 
 class Lecture(models.Model):

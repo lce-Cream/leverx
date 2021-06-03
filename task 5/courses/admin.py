@@ -13,7 +13,7 @@ admin.site.register(User)
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'owner')
+    list_display = ('title',)
 
 
 @admin.register(Lecture)

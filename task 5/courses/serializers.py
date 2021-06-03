@@ -22,28 +22,36 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class ViewUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'status']
+        fields = ['id', 'username', 'email', 'status', 'date_joined']
 
 
-# Course
+
 class CourseSerializer(serializers.ModelSerializer):
+    # participants = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
     class Meta:
         model = Course
-        fields = ['title', 'owner', 'participants']
+        fields = ['id', 'participants', 'title']
 
 
 # Lecture
-class LectureSerializer(serializers.ModelSerializer):
+class CreateLectureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lecture
-        fields = ['subject', 'course', 'presentation', 'homework']
+        fields = ['id', 'subject', 'course', 'presentation', 'homework']
+
+
+class ViewLectureSerializer(serializers.ModelSerializer):
+    course = serializers.SlugRelatedField(read_only=True, slug_field='title')
+    class Meta:
+        model = Lecture
+        fields = ['id', 'subject', 'course', 'presentation', 'homework']
 
 
 # Task
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['lecture', 'author', 'solution']
+        fields = ['id', 'lecture', 'author', 'solution']
 
 
 # Grade

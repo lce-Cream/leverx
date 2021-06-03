@@ -20,11 +20,11 @@ urlpatterns += [
     path('courses/<int:pk>/', views.CourseDetail.as_view()),
 
     path('lectures/', views.ListCreateLecture.as_view()),
-    path('lectures/<int:pk>/', views.LecuteDetail.as_view()),
+    path('lectures/<int:pk>/', views.LectureDetail.as_view()),
 
-    path('tasks/', views.ListCreateTask.as_view()),
+    path('tasks/', views.CreateTask.as_view()),
     path('tasks/<int:pk>/', views.TaskDetail.as_view()),
 
-    path('grades/', views.ListCreateTask.as_view()),
+    path('grades/', views.CreateGrade.as_view()),
     path('grades/<int:pk>/', views.GradeDetail.as_view()),
 ]

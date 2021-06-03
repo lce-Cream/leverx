@@ -27,7 +27,7 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'courses.User'
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),
 }
 
 REST_FRAMEWORK = {
@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'online_courses.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -81,7 +81,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'online_courses.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
